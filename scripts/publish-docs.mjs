@@ -1,0 +1,14 @@
+import { cp, mkdir, writeFile, rm, realpath } from 'node:fs/promises';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+execFileSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--config', 'vite.demo.config.ts'], { stdio: 'inherit' });
+await mkdir('docs', { recursive: true });
+const projectRoot = await realpath('.');
+const docsRoot = await realpath('docs');
+if (docsRoot !== path.join(projectRoot, 'docs')) throw new Error('Refusing to clean a docs directory outside the project.');
+const assetsRoot = path.join(docsRoot, 'assets');
+if (path.dirname(assetsRoot) !== docsRoot) throw new Error('Unexpected asset directory.');
+await rm(assetsRoot, { recursive: true, force: true });
+await cp('dist', 'docs', { recursive: true });
+await writeFile('docs/.nojekyll', '');
+console.log('GitHub Pages demo updated in docs/. Commit source and docs together.');
